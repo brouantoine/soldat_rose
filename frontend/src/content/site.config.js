@@ -5,7 +5,7 @@ const siteConfig = {
     fullName: "Corine Raphaëlla Koua",
     role: "Chargée de communication d’entreprise",
 
-    avatar: "/images/Corine.png",
+    avatar: "/images/Corine.jpg",
     cover: "/images/Koua.jpg"
   },
 
