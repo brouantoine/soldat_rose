@@ -51,8 +51,9 @@ const Home = () => {
 
   // ✅ Toujours sécuriser : si ce n’est pas un array, on met []
   const experiences = Array.isArray(content?.experiences) ? content.experiences : [];
-  const services = Array.isArray(content?.services) ? content.services : [];
   const interests = Array.isArray(content?.interests) ? content.interests : [];
+  const generalSkills = Array.isArray(content?.generalSkills) ? content.generalSkills : [];
+  const services = Array.isArray(content?.services) ? content.services : [];
 
   const roleLabel = content?.profile?.role || "Chargée de communication d’entreprise";
   const nameLabel = content?.profile?.fullName || '—';
@@ -181,7 +182,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* PARCOURS — serré */}
+      {/* EXPERIENCES — serré */}
       <motion.section
         id="cv"
         className="section cv-section tight"
@@ -218,6 +219,91 @@ const Home = () => {
           ))}
         </div>
       </motion.section>
+
+      {/* CENTRES D’INTÉRÊT — chips (comme ton screenshot) */}
+      {interests.length > 0 && (
+        <motion.section
+          id="loisirs"
+          className="section interests-section alt tight"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '0px 0px -36px 0px' }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h2
+            className="section-title"
+            initial={{ y: 14, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+          >
+            Centres d’intérêt
+          </motion.h2>
+
+          <div className="interests-wrap">
+            {interests.map((it, index) => {
+              const label = typeof it === 'string' ? it : (it?.label || '—');
+              const emoji = typeof it === 'string' ? '✨' : (it?.emoji || '✨');
+              const note = typeof it === 'string' ? '' : (it?.note || '');
+
+              return (
+                <motion.div
+                  key={`${label}-${index}`}
+                  className="interest-chip"
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: isMobile ? '0px' : '-44px' }}
+                  transition={{ duration: 0.45, delay: index * 0.06 }}
+                  whileHover={{ y: -2 }}
+                >
+                  <span className="interest-emoji" aria-hidden>{emoji}</span>
+                  <span className="interest-label">{label}</span>
+                  {note ? <span className="interest-note">• {note}</span> : null}
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.section>
+      )}
+
+      {/* COMPÉTENCES GÉNÉRALES — chips (même look que centres d’intérêt) */}
+      {generalSkills.length > 0 && (
+        <motion.section
+          id="competences"
+          className="section skills-section alt tight"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: '0px 0px -36px 0px' }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.h2
+            className="section-title"
+            initial={{ y: 14, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.15 }}
+          >
+            Compétences générales
+          </motion.h2>
+
+          <div className="skills-wrap">
+            {generalSkills.map((s, index) => (
+              <motion.div
+                key={`${s}-${index}`}
+                className="skill-chip"
+                initial={{ opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: isMobile ? '0px' : '-44px' }}
+                transition={{ duration: 0.45, delay: index * 0.06 }}
+                whileHover={{ y: -2 }}
+              >
+                <span className="skill-emoji" aria-hidden>⭐</span>
+                <span className="skill-label">{s}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* SERVICES — alt + serré */}
       <motion.section
@@ -266,52 +352,7 @@ const Home = () => {
           ))}
         </div>
       </motion.section>
-          {/* CENTRES D’INTÉRÊT — après expériences (tirés du JSON) */}
-      {interests.length > 0 && (
-        <motion.section
-          id="loisirs"
-          className="section interests-section alt tight"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true, margin: '0px 0px -36px 0px' }}
-          transition={{ duration: 0.6 }}
-        >
-          <motion.h2
-            className="section-title"
-            initial={{ y: 14, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.15 }}
-          >
-            Centres d’intérêt
-          </motion.h2>
 
-          <div className="interests-wrap">
-            {interests.map((it, index) => {
-              const label = typeof it === 'string' ? it : (it?.label || '—');
-              const emoji = typeof it === 'string' ? '✨' : (it?.emoji || '✨');
-              const note = typeof it === 'string' ? '' : (it?.note || '');
-
-              return (
-                <motion.div
-                  key={`${label}-${index}`}
-                  className="interest-chip"
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: isMobile ? '0px' : '-44px' }}
-                  transition={{ duration: 0.45, delay: index * 0.06 }}
-                  whileHover={{ y: -2 }}
-                >
-                  <span className="interest-emoji" aria-hidden>{emoji}</span>
-                  <span className="interest-label">{label}</span>
-                  {note ? <span className="interest-note">• {note}</span> : null}
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.section>
-      )}
-      
       {/* CONTACT — alt + serré */}
       <motion.section
         id="contact"

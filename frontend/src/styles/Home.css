@@ -796,3 +796,105 @@ body::before{
   .interest-chip{ padding: .64rem .85rem; }
   .interest-emoji{ width: 32px; height: 32px; border-radius: 11px; }
 }
+/* ================== SKILLS (chips comme Centres d’intérêt) ================== */
+.skills-section{
+  max-width: 1040px;
+  margin: 0 auto;
+}
+
+.skills-lead{
+  max-width: 920px;
+  margin: 0 auto 1rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: .85rem;
+  text-align:center;
+  flex-direction:column;
+}
+
+@media (min-width: 640px){
+  .skills-lead{ flex-direction:row; text-align:left; }
+}
+
+.skills-lead-icon{
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display:grid;
+  place-items:center;
+  background: linear-gradient(135deg, rgba(37,99,235,.12), rgba(37,99,235,.06));
+  box-shadow: inset 0 0 0 1px rgba(37,99,235,.16);
+  font-size: 1.25rem;
+}
+
+.skills-lead-title{
+  font-weight: 900;
+  letter-spacing: -.01em;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.skills-lead-sub{
+  margin-top: .1rem;
+  color: var(--text-light);
+  font-weight: 650;
+  font-size: .95rem;
+}
+
+.skills-wrap{
+  max-width: 920px;
+  margin: 0 auto;
+  display:flex;
+  flex-wrap:wrap;
+  gap: .7rem;
+  justify-content:center;
+  padding-top: .25rem;
+}
+
+.skill-chip{
+  display:inline-flex;
+  align-items:center;
+  gap: .55rem;
+  padding: .72rem .95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15,23,42,.10);
+  background: rgba(255,255,255,.86);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
+  max-width: 100%;
+}
+
+.skill-chip:hover{
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: rgba(37,99,235,.18);
+}
+
+.skill-emoji{
+  width: 34px;
+  height: 34px;
+  display:grid;
+  place-items:center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(37,99,235,.12), rgba(37,99,235,.06));
+  box-shadow: inset 0 0 0 1px rgba(37,99,235,.16);
+  font-size: 1.05rem;
+  flex: 0 0 auto;
+}
+
+.skill-label{
+  font-weight: 850;
+  letter-spacing: -.01em;
+  color: var(--text);
+  font-size: .98rem;
+  white-space: normal;
+  line-height: 1.25;
+}
+
+/* un peu plus compact sur mobile */
+@media (max-width: 480px){
+  .skill-chip{ padding: .64rem .85rem; }
+  .skill-emoji{ width: 32px; height: 32px; border-radius: 11px; }
+}

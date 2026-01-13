@@ -68,6 +68,14 @@ const siteConfig = {
     }
   ],
 
+  // ✅ Compétences générales (fallback local)
+  generalSkills: [
+    "Leadership naturel",
+    "Aisance orale",
+    "Créativité",
+    "Capacité à gérer des responsabilités"
+  ],
+
   services: [
     {
       emoji: "📣",
@@ -75,6 +83,19 @@ const siteConfig = {
       short: "Structurer ta communication interne et externe.",
       points: ["Stratégie et plan de communication", "Messages institutionnels", "Supports de communication"]
     },
+
+    // ✅ Nouvelle carte (entre Communication d’entreprise et Community management)
+    {
+      emoji: "💼",
+      title: "Social media manager",
+      short: "Piloter la stratégie social media et la ligne éditoriale.",
+      points: [
+        "Élaboration de la stratégie des réseaux sociaux",
+        "Rédaction de la ligne éditoriale",
+        "Supervision des actions menées"
+      ]
+    },
+
     {
       emoji: "📱",
       title: "Community management",
