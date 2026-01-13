@@ -1,149 +1,97 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMediaQuery } from 'react-responsive';
 import '../styles/Projets.css';
 import useRemoteContent from '../hooks/useRemoteContent';
 
+import { RiBriefcaseLine, RiCalendar2Line, RiArrowRightUpLine } from 'react-icons/ri';
+
 const Projets = () => {
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
   const content = useRemoteContent();
-  const projetsData = content.projects || [];
+
+  // ✅ On affiche les expériences (pas les projects)
+  const experiences = content.experiences || [];
 
   return (
     <motion.div
-      className="projets-container"
+      className="xp-container"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.45 }}
     >
-      <div className="projets-header">
+      <div className="xp-header">
         <motion.h1
-          initial={{ y: -20, opacity: 0 }}
+          initial={{ y: -18, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
-          Projets & Réalisations
+          Expériences
         </motion.h1>
 
         <motion.p
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 18, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="subtitle"
+          transition={{ duration: 0.55, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+          className="xp-subtitle"
         >
           Communication d’entreprise • Community management • Contenus
         </motion.p>
       </div>
 
-      <div className="projets-grid">
-        <AnimatePresence>
-          {projetsData.map((projet, index) => (
-            <motion.div
-              key={projet.id || index}
-              className={`projet-card ${projet.status}`}
-              initial={{ y: 50, opacity: 0 }}
-              animate={{
-                y: 0,
-                opacity: 1,
-                transition: { delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }
-              }}
-              whileHover={
-                !isMobile
-                  ? { y: -8, transition: { type: 'spring', stiffness: 400, damping: 10 } }
-                  : {}
-              }
-              whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
-              exit={{ opacity: 0 }}
-              layout
-            >
-              <motion.div
-                className="projet-image-container"
-                whileHover={!isMobile ? { scale: 1.03 } : {}}
-                transition={{ duration: 0.4 }}
-              >
-                <img src={projet.image} alt={projet.title} loading="lazy" />
+      <div className="xp-timeline" aria-label="Timeline des expériences">
+        {experiences.map((exp, index) => (
+          <motion.article
+            key={`${exp.title}-${index}`}
+            className="xp-item"
+            initial={{ y: 18, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, margin: isMobile ? '0px' : '0px 0px -60px 0px' }}
+            transition={{ duration: 0.45, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="xp-left">
+              <div className="xp-date">
+                <RiCalendar2Line className="xp-ico" />
+                <span>{exp.date}</span>
+              </div>
+              <div className="xp-line" aria-hidden="true" />
+            </div>
 
-                {projet.status === "in-progress" && (
-                  <motion.div
-                    className="status-badge"
-                    initial={{ scale: 0.8 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.3 }}
+            <div className="xp-card">
+              <div className="xp-card-top">
+                <div className="xp-title">
+                  <RiBriefcaseLine className="xp-ico" />
+                  <h3>{exp.title}</h3>
+                </div>
+
+                {/* Optionnel : si un jour tu ajoutes exp.link */}
+                {exp.link && (
+                  <a
+                    className="xp-link"
+                    href={exp.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Ouvrir le lien"
+                    title="Ouvrir"
                   >
-                    En cours
-                  </motion.div>
+                    <RiArrowRightUpLine />
+                  </a>
                 )}
+              </div>
 
-                <div className="technologies-badge">
-                  {projet.technologies?.map((tech, i) => (
-                    <motion.span
-                      key={i}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + i * 0.05 }}
-                    >
-                      {tech}
-                    </motion.span>
+              <p className="xp-desc">{exp.description}</p>
+
+              {/* Optionnel : si un jour tu ajoutes exp.tags = ["Canva","CapCut"] */}
+              {Array.isArray(exp.tags) && exp.tags.length > 0 && (
+                <div className="xp-tags">
+                  {exp.tags.map((t) => (
+                    <span className="xp-tag" key={t}>{t}</span>
                   ))}
                 </div>
-              </motion.div>
-
-              <div className="projet-content">
-                <motion.h3
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  {projet.title}
-                </motion.h3>
-
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                >
-                  {projet.description}
-                </motion.p>
-
-                <motion.div
-                  className="projet-actions"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <motion.a
-                    href={projet.link || "#"}
-                    className="action-button"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    target={projet.isExternal ? "_blank" : undefined}
-                    rel={projet.isExternal ? "noopener noreferrer" : undefined}
-                  >
-                    {projet.status === "in-progress" ? "Voir le projet" : "Voir le projet"}
-                    {projet.isExternal && (
-                      <span className="external-link-icon" aria-hidden="true">
-                        {" "}↗
-                      </span>
-                    )}
-                  </motion.a>
-
-                  {projet.source && (
-                    <motion.a
-                      href={projet.source}
-                      className="action-button secondary"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Ressources
-                    </motion.a>
-                  )}
-                </motion.div>
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+              )}
+            </div>
+          </motion.article>
+        ))}
       </div>
     </motion.div>
   );

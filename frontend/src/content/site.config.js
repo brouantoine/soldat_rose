@@ -16,7 +16,7 @@ const siteConfig = {
   copy: {
     heroBubbleTitle: ["Communication d’entreprise", "Community management"],
     heroBubbleSubtitle:
-      "Créative, dynamique et organisée. Communication stratégique, digitale et image de marque."
+      "Créative, dynamique et organisée. Communication stratégique, institutionnelle et digitale. Création de contenus et image de marque."
   },
 
   experiences: [
@@ -95,11 +95,25 @@ const siteConfig = {
   ],
 
   socials: {
-    facebook: "https://facebook.com/",
-    instagram: "",
-    tiktok: "",
+    facebook: "https://www.facebook.com/share/17RTDmKhDW/",
+    instagram: "https://www.instagram.com/soldat_rose?igsh=eWFxaGh2am9wdG9o",
+    tiktok: "https://www.tiktok.com/@soldat__rose?_r=1&_t=ZM-931VcsWFXW0",
     whatsapp: "https://wa.me/225708144967",
     email: "mailto:Corineraphaellak@gmail.com"
+  },
+
+  // ✅ utilisé par Contact.jsx pour afficher les abonnés
+  socialStats: {
+    tiktok: "35k+ abonnés",
+    facebook: "8k abonnés",
+    instagram: "5k abonnés"
+  },
+
+  // ✅ affichage propre du nom du compte
+  socialNames: {
+    facebook: "Corine Raphaëlla Koua",
+    tiktok: "Soldat rose",
+    instagram: "Soldat rose"
   },
 
   projects: [
