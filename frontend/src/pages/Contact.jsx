@@ -1,3 +1,4 @@
+// src/pages/Contact.jsx
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import '../styles/Contact.css';
@@ -20,9 +21,12 @@ const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [submitStatus, setSubmitStatus] = useState(null);
 
+  // =========================
+  // Socials (remote + fallback)
+  // IMPORTANT: ne jamais écraser le fallback avec une valeur vide ("")
+  // =========================
   const socials = content?.socials || {};
 
-  // fallback (au cas où le JSON n’a pas encore été push)
   const fallbackSocials = {
     facebook: 'https://www.facebook.com/share/17RTDmKhDW/',
     tiktok: 'https://www.tiktok.com/@soldat__rose?_r=1&_t=ZM-931VcsWFXW0',
@@ -31,14 +35,34 @@ const Contact = () => {
     email: 'mailto:Corineraphaellak@gmail.com',
   };
 
+  const cleanUrl = (v) => (typeof v === 'string' ? v.trim() : '');
+
+  const normalizeEmail = (v) => {
+    const s = cleanUrl(v);
+    if (!s) return '';
+    if (s.startsWith('mailto:')) return s;
+    if (s.includes('@')) return `mailto:${s}`;
+    return s;
+  };
+
+  const pick = (key) => {
+    const remote = cleanUrl(socials?.[key]);
+    const fallback = cleanUrl(fallbackSocials?.[key]);
+    return remote || fallback;
+  };
+
   const mergedSocials = {
-    ...fallbackSocials,
-    ...socials,
+    facebook: pick('facebook'),
+    instagram: pick('instagram'),
+    tiktok: pick('tiktok'),
+    whatsapp: pick('whatsapp'),
+    email: normalizeEmail(pick('email')),
   };
 
   const phone = content?.contact?.phone || '—';
   const email = content?.contact?.email || '—';
 
+  // Stats (tu peux aussi les mettre dans le JSON content.socialStats)
   const defaultStats = {
     tiktok: '35k+ abonnés',
     facebook: '8k abonnés',
@@ -48,6 +72,7 @@ const Contact = () => {
   };
   const socialStats = { ...defaultStats, ...(content?.socialStats || {}) };
 
+  // Noms affichés (tu peux aussi les mettre dans le JSON content.socialNames)
   const socialNames = {
     facebook: 'Corine Raphaëlla Koua',
     tiktok: 'Soldat rose',
@@ -75,77 +100,84 @@ const Contact = () => {
     }
   };
 
-  const socialCards = useMemo(() => ([
-    {
-      key: 'tiktok',
-      name: 'TikTok',
-      url: mergedSocials.tiktok,
-      title: socialNames.tiktok,
-      handle: handleFromUrl('tiktok', mergedSocials.tiktok),
-      followers: socialStats.tiktok,
-      icon: <RiTiktokFill />,
-      variant: 'tiktok',
-    },
-    {
-      key: 'instagram',
-      name: 'Instagram',
-      url: mergedSocials.instagram,
-      title: socialNames.instagram,
-      handle: handleFromUrl('instagram', mergedSocials.instagram),
-      followers: socialStats.instagram,
-      icon: <RiInstagramFill />,
-      variant: 'instagram',
-    },
-    {
-      key: 'facebook',
-      name: 'Facebook',
-      url: mergedSocials.facebook,
-      title: socialNames.facebook,
-      handle: '',
-      followers: socialStats.facebook,
-      icon: <RiFacebookCircleFill />,
-      variant: 'facebook',
-    },
-    {
-      key: 'whatsapp',
-      name: 'WhatsApp',
-      url: mergedSocials.whatsapp,
-      title: 'WhatsApp',
-      handle: phone !== '—' ? phone : '',
-      followers: socialStats.whatsapp,
-      icon: <RiWhatsappFill />,
-      variant: 'whatsapp',
-    },
-    {
-      key: 'email',
-      name: 'Email',
-      url: mergedSocials.email || (email !== '—' ? `mailto:${email}` : ''),
-      title: 'Email',
-      handle: email !== '—' ? email : '',
-      followers: socialStats.email,
-      icon: <RiMailFill />,
-      variant: 'email',
-    },
-  ].filter(s => !!s.url)), [mergedSocials, phone, email, socialStats, socialNames]);
+  const socialCards = useMemo(
+    () =>
+      [
+        {
+          key: 'tiktok',
+          name: 'TikTok',
+          url: mergedSocials.tiktok,
+          title: socialNames.tiktok,
+          handle: handleFromUrl('tiktok', mergedSocials.tiktok),
+          followers: socialStats.tiktok,
+          icon: <RiTiktokFill />,
+          variant: 'tiktok',
+        },
+        {
+          key: 'instagram',
+          name: 'Instagram',
+          url: mergedSocials.instagram,
+          title: socialNames.instagram,
+          handle: handleFromUrl('instagram', mergedSocials.instagram),
+          followers: socialStats.instagram,
+          icon: <RiInstagramFill />,
+          variant: 'instagram',
+        },
+        {
+          key: 'facebook',
+          name: 'Facebook',
+          url: mergedSocials.facebook,
+          title: socialNames.facebook,
+          handle: '',
+          followers: socialStats.facebook,
+          icon: <RiFacebookCircleFill />,
+          variant: 'facebook',
+        },
+        {
+          key: 'whatsapp',
+          name: 'WhatsApp',
+          url: mergedSocials.whatsapp,
+          title: 'WhatsApp',
+          handle: phone !== '—' ? phone : '',
+          followers: socialStats.whatsapp,
+          icon: <RiWhatsappFill />,
+          variant: 'whatsapp',
+        },
+        {
+          key: 'email',
+          name: 'Email',
+          url: mergedSocials.email || (email !== '—' ? `mailto:${email}` : ''),
+          title: 'Email',
+          handle: email !== '—' ? email : '',
+          followers: socialStats.email,
+          icon: <RiMailFill />,
+          variant: 'email',
+        },
+      ].filter((s) => typeof s.url === 'string' && s.url.trim().length > 0),
+    [mergedSocials, phone, email, socialStats, socialNames]
+  );
 
-  const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }));
+  // =========================
+  // Form
+  // =========================
+  const handleChange = (e) => setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = `https://formsubmit.co/ajax/${content?.contact?.formEmail || content?.contact?.email || 'brouantoineassanvo@gmail.com'}`;
+      const endpoint = `https://formsubmit.co/ajax/${
+        content?.contact?.formEmail || content?.contact?.email || 'brouantoineassanvo@gmail.com'
+      }`;
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify(formData),
       });
       const result = await response.json();
       if (response.ok || result.success) {
         setSubmitStatus('success');
         setFormData({ name: '', email: '', message: '' });
-      } else {
-        setSubmitStatus('error');
-      }
+      } else setSubmitStatus('error');
     } catch {
       setSubmitStatus('error');
     }
@@ -155,15 +187,22 @@ const Contact = () => {
     <motion.div className="contact-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }}>
       <div className="c-container">
         <div className="c-header">
-          <motion.h1 className="c-title" initial={{ y: -18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 120, damping: 14 }}>
+          <motion.h1
+            className="c-title"
+            initial={{ y: -18, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 120, damping: 14 }}
+          >
             Contact<span className="dot">.</span>
           </motion.h1>
+
           <motion.p className="c-subtitle" initial={{ y: 14, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.12 }}>
             Parlons de ta communication, tes réseaux et ton image.
           </motion.p>
         </div>
 
         <div className="c-grid">
+          {/* LEFT: SOCIALS */}
           <motion.aside className="c-side" initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.18 }}>
             <div className="c-panel">
               <div className="panel-head">
@@ -186,7 +225,9 @@ const Contact = () => {
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="social-top">
-                      <div className="social-ico" aria-hidden="true">{s.icon}</div>
+                      <div className="social-ico" aria-hidden="true">
+                        {s.icon}
+                      </div>
 
                       <div className="social-meta">
                         <div className="social-name">
@@ -194,7 +235,8 @@ const Contact = () => {
                         </div>
 
                         <div className="social-handle">
-                          <strong>{s.title}</strong>{s.handle ? ` • ${s.handle}` : ''}
+                          <strong>{s.title}</strong>
+                          {s.handle ? ` • ${s.handle}` : ''}
                         </div>
                       </div>
                     </div>
@@ -211,7 +253,9 @@ const Contact = () => {
                   <RiGlobalLine className="direct-ico" />
                   <div>
                     <div className="direct-label">Téléphone</div>
-                    <a className="direct-value" href={phone !== '—' ? `tel:${phone}` : '#'}>{phone}</a>
+                    <a className="direct-value" href={phone !== '—' ? `tel:${phone}` : '#'} onClick={(e) => phone === '—' && e.preventDefault()}>
+                      {phone}
+                    </a>
                   </div>
                 </div>
 
@@ -219,13 +263,16 @@ const Contact = () => {
                   <RiMailFill className="direct-ico" />
                   <div>
                     <div className="direct-label">Email</div>
-                    <a className="direct-value" href={email !== '—' ? `mailto:${email}` : '#'}>{email}</a>
+                    <a className="direct-value" href={email !== '—' ? `mailto:${email}` : '#'} onClick={(e) => email === '—' && e.preventDefault()}>
+                      {email}
+                    </a>
                   </div>
                 </div>
               </div>
             </div>
           </motion.aside>
 
+          {/* RIGHT: FORM */}
           <motion.div className="c-formWrap" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
             <form className="c-form" onSubmit={handleSubmit}>
               <div className="form-head">
@@ -234,7 +281,11 @@ const Contact = () => {
               </div>
 
               <input type="hidden" name="form-name" value="contact" />
-              <p hidden><label>Ne pas remplir: <input name="bot-field" /></label></p>
+              <p hidden>
+                <label>
+                  Ne pas remplir: <input name="bot-field" />
+                </label>
+              </p>
 
               <AnimatePresence>
                 {submitStatus === 'success' && (
@@ -250,17 +301,23 @@ const Contact = () => {
               </AnimatePresence>
 
               <div className="field">
-                <label htmlFor="name"><RiUserFill /> Nom complet</label>
+                <label htmlFor="name">
+                  <RiUserFill /> Nom complet
+                </label>
                 <input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Ton nom" autoComplete="name" />
               </div>
 
               <div className="field">
-                <label htmlFor="email"><RiMailFill /> Email</label>
+                <label htmlFor="email">
+                  <RiMailFill /> Email
+                </label>
                 <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="email@exemple.com" autoComplete="email" />
               </div>
 
               <div className="field">
-                <label htmlFor="message"><RiMessage2Fill /> Message</label>
+                <label htmlFor="message">
+                  <RiMessage2Fill /> Message
+                </label>
                 <textarea
                   id="message"
                   name="message"

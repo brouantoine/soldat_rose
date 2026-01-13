@@ -104,9 +104,9 @@ const siteConfig = {
 
   // ✅ utilisé par Contact.jsx pour afficher les abonnés
   socialStats: {
-    tiktok: "35k+ abonnés",
+    tiktok: "34k+ abonnés",
     facebook: "8k abonnés",
-    instagram: "5k abonnés"
+    instagram: "400 abonnés"
   },
 
   // ✅ affichage propre du nom du compte
