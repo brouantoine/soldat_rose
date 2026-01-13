@@ -10,7 +10,9 @@ import { ageFrom } from '../utils/age';
 
 const Home = () => {
   const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
-  const content = useRemoteContent();
+
+  // ✅ Protection : si le hook renvoie null au début, on garde un objet vide
+  const content = useRemoteContent() || {};
 
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [submitStatus, setSubmitStatus] = useState(null);
@@ -20,28 +22,47 @@ const Home = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = `https://formsubmit.co/ajax/${content?.contact?.formEmail || content?.contact?.email || 'brouantoineassanvo@gmail.com'}`;
+      const targetEmail =
+        content?.contact?.formEmail ||
+        content?.contact?.email ||
+        'brouantoineassanvo@gmail.com';
+
+      const endpoint = `https://formsubmit.co/ajax/${encodeURIComponent(targetEmail)}`;
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(formData),
       });
-      const result = await response.json();
+
+      const result = await response.json().catch(() => ({}));
+
       if (response.ok || result.success) {
         setSubmitStatus('success');
         setFormData({ name: '', email: '', message: '' });
-      } else setSubmitStatus('error');
+      } else {
+        setSubmitStatus('error');
+      }
     } catch {
       setSubmitStatus('error');
     }
   };
 
-  const experiences = content.experiences || [];
-  const services = content.services || [];
+  // ✅ Toujours sécuriser : si ce n’est pas un array, on met []
+  const experiences = Array.isArray(content?.experiences) ? content.experiences : [];
+  const services = Array.isArray(content?.services) ? content.services : [];
 
   const roleLabel = content?.profile?.role || "Chargée de communication d’entreprise";
   const nameLabel = content?.profile?.fullName || '—';
   const ageLabel = content?.profile?.birthdate ? `${ageFrom(content.profile.birthdate)} ans` : null;
+
+  // ✅ Images depuis le JSON (si absent => évite d’afficher une image cassée)
+  const coverSrc = content?.profile?.cover || '';
+  const avatarSrc = content?.profile?.avatar || '';
+
+  const heroTitle1 = content?.copy?.heroBubbleTitle?.[0] || "Communication d’entreprise";
+  const heroTitle2 = content?.copy?.heroBubbleTitle?.[1] || "Community management";
+  const heroSubtitle = content?.copy?.heroBubbleSubtitle || "Communication stratégique, digitale et image de marque.";
 
   return (
     <div className="portfolio-container">
@@ -49,59 +70,105 @@ const Home = () => {
       <section className="hero-section">
         {/* Couverture */}
         <div className="hero-cover">
-          <img
-            src={content?.profile?.cover}
-            alt=""
-            className="hero-cover-image"
-            loading="lazy"
-          />
+          {coverSrc ? (
+            <img
+              src={coverSrc}
+              alt=""
+              className="hero-cover-image"
+              loading="lazy"
+            />
+          ) : (
+            <div className="hero-cover-image" />
+          )}
         </div>
 
         <div className="hero-content">
-          <motion.div className="profile-text-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
-            <motion.div className="profile-container" initial={{ scale: 0.95 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 110, damping: 14 }}>
-              <img
-                src={content?.profile?.avatar}
-                alt={nameLabel}
-                className="profile-image"
-                loading="lazy"
+          <motion.div
+            className="profile-text-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+          >
+            <motion.div
+              className="profile-container"
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 110, damping: 14 }}
+            >
+              {avatarSrc ? (
+                <img
+                  src={avatarSrc}
+                  alt={nameLabel}
+                  className="profile-image"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="profile-image" />
+              )}
+
+              <motion.div
+                className="profile-decoration"
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 0.22 }}
+                transition={{ delay: 0.25, type: 'spring', stiffness: 160 }}
               />
-              <motion.div className="profile-decoration" initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 0.22 }} transition={{ delay: 0.25, type: 'spring', stiffness: 160 }} />
             </motion.div>
 
-            <motion.div className="profile-side-text" initial={{ x: 16, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.35 }}>
+            <motion.div
+              className="profile-side-text"
+              initial={{ x: 16, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.35 }}
+            >
               <div className="text-bubble">
                 <p className="bubble-text">
-                  <span className="highlight">{content?.copy?.heroBubbleTitle?.[0] || "Communication d’entreprise"}</span>,
-                  <span className="highlight"> {content?.copy?.heroBubbleTitle?.[1] || "Community management"}</span>
+                  <span className="highlight">{heroTitle1}</span>,
+                  <span className="highlight"> {heroTitle2}</span>
                 </p>
                 <p className="bubble-subtext">
-                  {content?.copy?.heroBubbleSubtitle || "Communication stratégique, digitale et image de marque."}
+                  {heroSubtitle}
                 </p>
               </div>
               <div className="text-arrow" />
             </motion.div>
           </motion.div>
 
-          <motion.div className="hero-text" initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+          <motion.div
+            className="hero-text"
+            initial={{ y: 8, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <h1>
               {nameLabel}
-              <motion.span className="subtitle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+              <motion.span
+                className="subtitle"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+              >
                 {roleLabel}{ageLabel ? ` • ${ageLabel}` : ''}
               </motion.span>
             </h1>
 
-            <motion.div className="hero-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}>
+            <motion.div
+              className="hero-actions"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.55 }}
+            >
               <Link to="/cv" style={{ textDecoration: 'none' }}>
                 <motion.button className="action-button" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   CV
                 </motion.button>
               </Link>
+
               <Link to="/projets" style={{ textDecoration: 'none' }}>
                 <motion.button className="action-button secondary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   Projets
                 </motion.button>
               </Link>
+
               <Link to="/contact" style={{ textDecoration: 'none' }}>
                 <motion.button className="action-button secondary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   Contact
@@ -134,16 +201,16 @@ const Home = () => {
         <div className="timeline">
           {experiences.map((exp, index) => (
             <motion.div
-              key={index}
+              key={`${exp?.title || 'exp'}-${index}`}
               className="timeline-item"
               initial={{ x: -20, opacity: 0 }}
               whileInView={{ x: 0, opacity: 1 }}
               viewport={{ once: true, margin: '0px 0px -22px 0px' }}
               transition={{ delay: index * 0.12 + 0.2 }}
             >
-              <h3>{exp.title}</h3>
-              <p className="timeline-date">{exp.date}</p>
-              <p className="timeline-description">{exp.description}</p>
+              <h3>{exp?.title}</h3>
+              <p className="timeline-date">{exp?.date}</p>
+              <p className="timeline-description">{exp?.description}</p>
               <div className="timeline-dot" />
             </motion.div>
           ))}
@@ -172,7 +239,7 @@ const Home = () => {
         <div className="services-grid">
           {services.map((s, index) => (
             <motion.article
-              key={s.title}
+              key={`${s?.title || 'service'}-${index}`}
               className="service-card"
               initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -181,13 +248,15 @@ const Home = () => {
               whileHover={{ y: -3 }}
             >
               <div className="service-top">
-                <div className="service-icon" aria-hidden><span>{s.emoji}</span></div>
-                <h3>{s.title}</h3>
-                <p className="service-short">{s.short}</p>
+                <div className="service-icon" aria-hidden><span>{s?.emoji}</span></div>
+                <h3>{s?.title}</h3>
+                <p className="service-short">{s?.short}</p>
               </div>
+
               <ul className="service-points">
-                {s.points.map((p) => <li key={p}>{p}</li>)}
+                {(Array.isArray(s?.points) ? s.points : []).map((p) => <li key={p}>{p}</li>)}
               </ul>
+
               <div className="service-cta">
                 <a href="#contact" className="service-button">Me contacter</a>
               </div>
