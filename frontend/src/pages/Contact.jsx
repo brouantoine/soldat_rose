@@ -22,62 +22,67 @@ const Contact = () => {
   const [submitStatus, setSubmitStatus] = useState(null);
 
   // =========================
-  // Socials (remote + fallback)
-  // IMPORTANT: ne jamais écraser le fallback avec une valeur vide ("")
+  // JSON sources (uniquement)
   // =========================
   const socials = content?.socials || {};
+  const socialStats = content?.socialStats || {}; // ex: { tiktok:"35k+ abonnés", facebook:"8k abonnés", instagram:"5k abonnés" }
+  const socialNames = content?.socialNames || {}; // ex: { tiktok:"Soldat rose", instagram:"Soldat rose", facebook:"Corine Raphaëlla Koua" }
 
-  const fallbackSocials = {
-    facebook: 'https://www.facebook.com/share/17RTDmKhDW/',
-    tiktok: 'https://www.tiktok.com/@soldat__rose?_r=1&_t=ZM-931VcsWFXW0',
-    instagram: 'https://www.instagram.com/soldat_rose?igsh=eWFxaGh2am9wdG9o',
-    whatsapp: 'https://wa.me/2250708144967',
-    email: 'mailto:Corineraphaellak@gmail.com',
-  };
+  const phoneRaw = content?.contact?.phone || '';
+  const emailRaw = content?.contact?.email || '';
 
-  const cleanUrl = (v) => (typeof v === 'string' ? v.trim() : '');
+  const cleanStr = (v) => (typeof v === 'string' ? v.trim() : '');
+  const safeTel = (v) => cleanStr(v).replace(/\s+/g, '');
 
-  const normalizeEmail = (v) => {
-    const s = cleanUrl(v);
+  const normalizeEmailUrl = (v) => {
+    const s = cleanStr(v);
     if (!s) return '';
     if (s.startsWith('mailto:')) return s;
     if (s.includes('@')) return `mailto:${s}`;
     return s;
   };
 
-  const pick = (key) => {
-    const remote = cleanUrl(socials?.[key]);
-    const fallback = cleanUrl(fallbackSocials?.[key]);
-    return remote || fallback;
+  // WhatsApp: si le JSON donne déjà un lien, on l’utilise.
+  // Sinon on tente avec le phone (JSON contact.phone).
+  const buildWhatsAppFromPhone = (phone) => {
+    const p = safeTel(phone);
+    if (!p) return '';
+    // CI: si "07..." => on ajoute 225
+    const digits = p.replace(/[^\d+]/g, '');
+    const normalized = digits.startsWith('0') ? `225${digits.slice(1)}` : digits.replace(/^\+/, '');
+    return normalized ? `https://wa.me/${normalized}` : '';
   };
 
-  const mergedSocials = {
-    facebook: pick('facebook'),
-    instagram: pick('instagram'),
-    tiktok: pick('tiktok'),
-    whatsapp: pick('whatsapp'),
-    email: normalizeEmail(pick('email')),
+  const getUrl = (key) => {
+    // socials[key] peut être:
+    // - une string (url)
+    // - un objet { url, followers, label } (optionnel)
+    const v = socials?.[key];
+    if (typeof v === 'string') return cleanStr(v);
+    if (v && typeof v === 'object') return cleanStr(v.url);
+    return '';
   };
 
-  const phone = content?.contact?.phone || '—';
-  const email = content?.contact?.email || '—';
-
-  // Stats (tu peux aussi les mettre dans le JSON content.socialStats)
-  const defaultStats = {
-    tiktok: '35k+ abonnés',
-    facebook: '8k abonnés',
-    instagram: '5k abonnés',
-    whatsapp: 'Réponse rapide',
-    email: 'Contact direct',
+  const getFollowers = (key) => {
+    // priorité: socials[key].followers si objet, sinon socialStats[key]
+    const v = socials?.[key];
+    if (v && typeof v === 'object' && cleanStr(v.followers)) return cleanStr(v.followers);
+    return cleanStr(socialStats?.[key]);
   };
-  const socialStats = { ...defaultStats, ...(content?.socialStats || {}) };
 
-  // Noms affichés (tu peux aussi les mettre dans le JSON content.socialNames)
-  const socialNames = {
-    facebook: 'Corine Raphaëlla Koua',
-    tiktok: 'Soldat rose',
-    instagram: 'Soldat rose',
-    ...(content?.socialNames || {}),
+  const getLabel = (key) => {
+    // priorité: socials[key].label si objet, sinon socialNames[key]
+    const v = socials?.[key];
+    if (v && typeof v === 'object' && cleanStr(v.label)) return cleanStr(v.label);
+    return cleanStr(socialNames?.[key]);
+  };
+
+  const resolved = {
+    facebook: getUrl('facebook'),
+    instagram: getUrl('instagram'),
+    tiktok: getUrl('tiktok'),
+    whatsapp: getUrl('whatsapp') || buildWhatsAppFromPhone(phoneRaw),
+    email: normalizeEmailUrl(getUrl('email') || emailRaw),
   };
 
   const handleFromUrl = (platform, url) => {
@@ -85,7 +90,6 @@ const Contact = () => {
     try {
       const u = new URL(url);
       const p = u.pathname || '';
-
       if (platform === 'tiktok') {
         const m = p.match(/\/@([^/]+)/);
         return m?.[1] ? `@${m[1]}` : '';
@@ -100,62 +104,66 @@ const Contact = () => {
     }
   };
 
-  const socialCards = useMemo(
-    () =>
-      [
-        {
-          key: 'tiktok',
-          name: 'TikTok',
-          url: mergedSocials.tiktok,
-          title: socialNames.tiktok,
-          handle: handleFromUrl('tiktok', mergedSocials.tiktok),
-          followers: socialStats.tiktok,
-          icon: <RiTiktokFill />,
-          variant: 'tiktok',
-        },
-        {
-          key: 'instagram',
-          name: 'Instagram',
-          url: mergedSocials.instagram,
-          title: socialNames.instagram,
-          handle: handleFromUrl('instagram', mergedSocials.instagram),
-          followers: socialStats.instagram,
-          icon: <RiInstagramFill />,
-          variant: 'instagram',
-        },
-        {
-          key: 'facebook',
-          name: 'Facebook',
-          url: mergedSocials.facebook,
-          title: socialNames.facebook,
-          handle: '',
-          followers: socialStats.facebook,
-          icon: <RiFacebookCircleFill />,
-          variant: 'facebook',
-        },
-        {
-          key: 'whatsapp',
-          name: 'WhatsApp',
-          url: mergedSocials.whatsapp,
-          title: 'WhatsApp',
-          handle: phone !== '—' ? phone : '',
-          followers: socialStats.whatsapp,
-          icon: <RiWhatsappFill />,
-          variant: 'whatsapp',
-        },
-        {
-          key: 'email',
-          name: 'Email',
-          url: mergedSocials.email || (email !== '—' ? `mailto:${email}` : ''),
-          title: 'Email',
-          handle: email !== '—' ? email : '',
-          followers: socialStats.email,
-          icon: <RiMailFill />,
-          variant: 'email',
-        },
-      ].filter((s) => typeof s.url === 'string' && s.url.trim().length > 0),
-    [mergedSocials, phone, email, socialStats, socialNames]
-  );
+  const phone = cleanStr(phoneRaw) || '—';
+  const email = cleanStr(emailRaw) || '—';
+
+  const socialCards = useMemo(() => {
+    const base = [
+      {
+        key: 'tiktok',
+        name: 'TikTok',
+        url: resolved.tiktok,
+        title: getLabel('tiktok') || 'Soldat rose',
+        handle: handleFromUrl('tiktok', resolved.tiktok),
+        followers: getFollowers('tiktok') || '',
+        icon: <RiTiktokFill />,
+        variant: 'tiktok',
+      },
+      {
+        key: 'instagram',
+        name: 'Instagram',
+        url: resolved.instagram,
+        title: getLabel('instagram') || 'Soldat rose',
+        handle: handleFromUrl('instagram', resolved.instagram),
+        followers: getFollowers('instagram') || '',
+        icon: <RiInstagramFill />,
+        variant: 'instagram',
+      },
+      {
+        key: 'facebook',
+        name: 'Facebook',
+        url: resolved.facebook,
+        title: getLabel('facebook') || 'Corine Raphaëlla Koua',
+        handle: '',
+        followers: getFollowers('facebook') || '',
+        icon: <RiFacebookCircleFill />,
+        variant: 'facebook',
+      },
+      {
+        key: 'whatsapp',
+        name: 'WhatsApp',
+        url: resolved.whatsapp,
+        title: getLabel('whatsapp') || 'WhatsApp',
+        handle: phone !== '—' ? phone : '',
+        followers: getFollowers('whatsapp') || '',
+        icon: <RiWhatsappFill />,
+        variant: 'whatsapp',
+      },
+      {
+        key: 'email',
+        name: 'Email',
+        url: resolved.email,
+        title: getLabel('email') || 'Email',
+        handle: email !== '—' ? email : '',
+        followers: getFollowers('email') || '',
+        icon: <RiMailFill />,
+        variant: 'email',
+      },
+    ];
+
+    // IMPORTANT: on n’enlève pas les cartes si url vide -> on affiche "Lien manquant"
+    return base.map((s) => ({ ...s, disabled: !cleanStr(s.url) }));
+  }, [resolved.facebook, resolved.instagram, resolved.tiktok, resolved.whatsapp, resolved.email, phone, email]);
 
   // =========================
   // Form
@@ -165,9 +173,7 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = `https://formsubmit.co/ajax/${
-        content?.contact?.formEmail || content?.contact?.email || 'brouantoineassanvo@gmail.com'
-      }`;
+      const endpoint = `https://formsubmit.co/ajax/${content?.contact?.formEmail || content?.contact?.email || 'brouantoineassanvo@gmail.com'}`;
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -187,12 +193,7 @@ const Contact = () => {
     <motion.div className="contact-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45 }}>
       <div className="c-container">
         <div className="c-header">
-          <motion.h1
-            className="c-title"
-            initial={{ y: -18, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 120, damping: 14 }}
-          >
+          <motion.h1 className="c-title" initial={{ y: -18, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 120, damping: 14 }}>
             Contact<span className="dot">.</span>
           </motion.h1>
 
@@ -202,7 +203,7 @@ const Contact = () => {
         </div>
 
         <div className="c-grid">
-          {/* LEFT: SOCIALS */}
+          {/* LEFT */}
           <motion.aside className="c-side" initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.18 }}>
             <div className="c-panel">
               <div className="panel-head">
@@ -211,41 +212,56 @@ const Contact = () => {
               </div>
 
               <div className="social-grid">
-                {socialCards.map((s, i) => (
-                  <motion.a
-                    key={s.key}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`social-card ${s.variant}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.22 + i * 0.06 }}
-                    whileHover={{ y: -3 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="social-top">
-                      <div className="social-ico" aria-hidden="true">
-                        {s.icon}
+                {socialCards.map((s, i) => {
+                  const CardTag = s.disabled ? motion.div : motion.a;
+                  const cardProps = s.disabled
+                    ? {
+                        role: 'link',
+                        'aria-disabled': true,
+                        tabIndex: 0,
+                      }
+                    : {
+                        href: s.url,
+                        target: '_blank',
+                        rel: 'noopener noreferrer',
+                      };
+
+                  return (
+                    <CardTag
+                      key={s.key}
+                      className={`social-card ${s.variant} ${s.disabled ? 'disabled' : ''}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.22 + i * 0.06 }}
+                      whileHover={!s.disabled ? { y: -3 } : {}}
+                      whileTap={!s.disabled ? { scale: 0.98 } : {}}
+                      {...cardProps}
+                    >
+                      <div className="social-top">
+                        <div className="social-ico" aria-hidden="true">{s.icon}</div>
+
+                        <div className="social-meta">
+                          <div className="social-name">
+                            {s.name} {!s.disabled && <RiArrowRightUpLine className="ext" aria-hidden="true" />}
+                          </div>
+
+                          <div className="social-handle">
+                            <strong>{s.title}</strong>
+                            {s.handle ? ` • ${s.handle}` : ''}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="social-meta">
-                        <div className="social-name">
-                          {s.name} <RiArrowRightUpLine className="ext" aria-hidden="true" />
-                        </div>
-
-                        <div className="social-handle">
-                          <strong>{s.title}</strong>
-                          {s.handle ? ` • ${s.handle}` : ''}
-                        </div>
+                      <div className="social-foot">
+                        {s.followers ? (
+                          <span className="badge">{s.followers}</span>
+                        ) : (
+                          <span className="badge ghost">{s.disabled ? 'Lien manquant dans le JSON' : '—'}</span>
+                        )}
                       </div>
-                    </div>
-
-                    <div className="social-foot">
-                      <span className="badge">{s.followers}</span>
-                    </div>
-                  </motion.a>
-                ))}
+                    </CardTag>
+                  );
+                })}
               </div>
 
               <div className="direct-box">
@@ -253,7 +269,7 @@ const Contact = () => {
                   <RiGlobalLine className="direct-ico" />
                   <div>
                     <div className="direct-label">Téléphone</div>
-                    <a className="direct-value" href={phone !== '—' ? `tel:${phone}` : '#'} onClick={(e) => phone === '—' && e.preventDefault()}>
+                    <a className="direct-value" href={phone !== '—' ? `tel:${safeTel(phone)}` : '#'} onClick={(e) => phone === '—' && e.preventDefault()}>
                       {phone}
                     </a>
                   </div>
@@ -272,7 +288,7 @@ const Contact = () => {
             </div>
           </motion.aside>
 
-          {/* RIGHT: FORM */}
+          {/* RIGHT */}
           <motion.div className="c-formWrap" initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
             <form className="c-form" onSubmit={handleSubmit}>
               <div className="form-head">
@@ -281,11 +297,7 @@ const Contact = () => {
               </div>
 
               <input type="hidden" name="form-name" value="contact" />
-              <p hidden>
-                <label>
-                  Ne pas remplir: <input name="bot-field" />
-                </label>
-              </p>
+              <p hidden><label>Ne pas remplir: <input name="bot-field" /></label></p>
 
               <AnimatePresence>
                 {submitStatus === 'success' && (
@@ -301,23 +313,34 @@ const Contact = () => {
               </AnimatePresence>
 
               <div className="field">
-                <label htmlFor="name">
-                  <RiUserFill /> Nom complet
-                </label>
-                <input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Ton nom" autoComplete="name" />
+                <label htmlFor="name"><RiUserFill /> Nom complet</label>
+                <input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  placeholder="Ton nom"
+                  autoComplete="name"
+                />
               </div>
 
               <div className="field">
-                <label htmlFor="email">
-                  <RiMailFill /> Email
-                </label>
-                <input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required placeholder="email@exemple.com" autoComplete="email" />
+                <label htmlFor="email"><RiMailFill /> Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="email@exemple.com"
+                  autoComplete="email"
+                />
               </div>
 
               <div className="field">
-                <label htmlFor="message">
-                  <RiMessage2Fill /> Message
-                </label>
+                <label htmlFor="message"><RiMessage2Fill /> Message</label>
                 <textarea
                   id="message"
                   name="message"
