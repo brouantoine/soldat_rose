@@ -1,3 +1,4 @@
+// src/config/siteConfig.js
 // Fallback local si le JSON distant n'est pas accessible
 const siteConfig = {
   profile: {
@@ -92,6 +93,14 @@ const siteConfig = {
       short: "Suivre ce qui marche et ajuster.",
       points: ["Analyse des statistiques", "Optimisation des contenus", "Recommandations d’actions"]
     }
+  ],
+
+  // ✅ Centres d’intérêt / Loisirs (fallback local)
+  interests: [
+    { emoji: "📚", label: "Lecture" },
+    { emoji: "✈️", label: "Voyage" },
+    { emoji: "🛍️", label: "Shopping" },
+    { emoji: "💆‍♀️", label: "Spa" }
   ],
 
   socials: {
